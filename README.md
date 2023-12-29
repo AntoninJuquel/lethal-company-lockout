@@ -2,6 +2,10 @@
 
 ### Lockout the facility for a certain amount of time.
 
+## Important
+
+This mod is client-side, meaning everyone has to install it in order to work.
+
 ## Information
 
 After a period of time a popup will appear on your screen telling you that the facility is locked out therefore you will neither be able to enter it nor exit it by the **Main Entrance** but you can still exit it by the **Fire Exit**.
