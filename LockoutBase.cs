@@ -7,7 +7,7 @@ namespace Lockout
     [BepInPlugin(modGUID, modName, modVersion)]
     public class LockoutBase : BaseUnityPlugin
     {
-        private const string modGUID = "com.github.somindras.lockout";
+        private const string modGUID = "com.github.somindras.lethal-company-lockout";
         private const string modName = "Lockout";
         private const string modVersion = "1.0.0.0";
 

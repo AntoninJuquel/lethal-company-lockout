@@ -13,3 +13,14 @@ You can only enter the facility by the **Main Entrance** because **Fire Exit** a
 ## Configuration
 
 You can configure the time before the facility is locked out and unlocked again in the config file generated after launching the game with the mod once.
+
+## Requirements
+- BepInEx
+
+## Installation
+
+1. Unzip this mod
+2. Copy the Lockout.dll
+3. Navigate to Lethal Company folder (Go to your Steam Library =>  Right click on Lethal Company => Manage => Browse local files)
+4. Open the BepInEx folder and then open the plugins folder
+5. Paste the Lockout.dll file inside
