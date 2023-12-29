@@ -1,0 +1,7 @@
+{
+    "name": "Lockout",
+    "version_number": "1.0.0.0",
+    "website_url": "https://github.com/AntoninJuquel/lethal-company-lockout",
+    "description": "This is a description for a mod. 250 characters max",
+    "dependencies": ["BepInEx-BepInExPack-5.4.2100"]
+}
