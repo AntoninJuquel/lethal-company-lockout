@@ -9,7 +9,7 @@ namespace Lockout
     {
         private const string modGUID = "com.github.somindras.lethal-company-lockout";
         private const string modName = "Lockout";
-        private const string modVersion = "1.0.0.0";
+        private const string modVersion = "1.0.0";
 
         private readonly Harmony harmony = new Harmony(modGUID);
 
