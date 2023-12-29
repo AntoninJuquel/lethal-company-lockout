@@ -81,24 +81,24 @@ namespace Lockout
             [HarmonyPrefix]
             public static bool TeleportPlayerPrefix(ref bool ___isEntranceToBuilding, ref int ___entranceId, ref bool ___gotExitPoint)
             {
-                mls.LogInfo((object)$"TeleportPlayerPrefix Entrance ID: {___entranceId}");
-                mls.LogInfo((object)$"TeleportPlayerPrefix Is Entrance?: {___isEntranceToBuilding}");
-                mls.LogInfo((object)$"TeleportPlayerPrefix Got Exit Point?: {___gotExitPoint}");
+                mls.LogInfo((object)$"TeleportPlayerPrefix: Entrance ID: {___entranceId}");
+                mls.LogInfo((object)$"TeleportPlayerPrefix: Is Entrance?: {___isEntranceToBuilding}");
+                mls.LogInfo((object)$"TeleportPlayerPrefix: Got Exit Point?: {___gotExitPoint}");
                 if (!___gotExitPoint)
                 {
-                    mls.LogInfo((object)"Initial Sweep");
+                    mls.LogInfo((object)"TeleportPlayerPrefix: Initial Sweep");
                 }
                 else if (___entranceId != 0) // Fire Exit
                 {
                     if (___isEntranceToBuilding) // Entering
                     {
-                        mls.LogInfo((object)"Fire Exit Denied");
+                        mls.LogInfo((object)"TeleportPlayerPrefix: Fire Exit Denied");
                         HUDManager.Instance.DisplayTip("Access Denied", "You can only open it from inside", false, false, "LC_Tip1");
                         return false;
                     }
                     else // Exiting
                     {
-                        mls.LogInfo((object)"Fire Exit Allowed");
+                        mls.LogInfo((object)"TeleportPlayerPrefix: Fire Exit Allowed");
                         return true;
                     }
                 }
@@ -107,12 +107,12 @@ namespace Lockout
                 {
                     if (isLockDown)
                     {
-                        mls.LogInfo((object)"Main Entrance Denied");
-                        HUDManager.Instance.DisplayTip("Access Denied", "The Main Entrance is blocked during lockdown", false, false, "LC_Tip1");
+                        mls.LogInfo((object)"TeleportPlayerPrefix: Main Entrance Denied");
+                        HUDManager.Instance.DisplayTip("Access Denied", "The Main Entrance is blocked during lockout", false, false, "LC_Tip1");
                     }
                     else
                     {
-                        mls.LogInfo((object)"Main Entrance Allowed");
+                        mls.LogInfo((object)"TeleportPlayerPrefix: Main Entrance Allowed");
                     }
                     return !isLockDown;
                 }
@@ -124,24 +124,24 @@ namespace Lockout
             [HarmonyPostfix]
             public static void FindExitPointPostfix(ref bool ___isEntranceToBuilding, ref int ___entranceId, ref bool ___gotExitPoint, ref bool __result)
             {
-                mls.LogInfo((object)$"FindExitPointPostfix Entrance ID: {___entranceId}");
-                mls.LogInfo((object)$"FindExitPointPostfix Is Entrance?: {___isEntranceToBuilding}");
-                mls.LogInfo((object)$"TeleportPlayerPrefix Got Exit Point?: {___gotExitPoint}");
+                mls.LogInfo((object)$"FindExitPointPostfix: Entrance ID: {___entranceId}");
+                mls.LogInfo((object)$"FindExitPointPostfix: Is Entrance?: {___isEntranceToBuilding}");
+                mls.LogInfo((object)$"FindExitPointPostfix: Got Exit Point?: {___gotExitPoint}");
                 if (!___gotExitPoint)
                 {
-                    mls.LogInfo((object)"Initial Sweep");
+                    mls.LogInfo((object)"FindExitPointPostfix: Initial Sweep");
                 }
                 else if (___entranceId != 0) // Fire Exit
                 {
                     if (___isEntranceToBuilding) // Entering
                     {
-                        mls.LogInfo((object)"Fire Exit Denied");
+                        mls.LogInfo((object)"FindExitPointPostfix: Fire Exit Denied");
                         HUDManager.Instance.DisplayTip("Access Denied", "You can only open it from inside", false, false, "LC_Tip1");
                         __result = false;
                     }
                     else // Exiting
                     {
-                        mls.LogInfo((object)"Fire Exit Allowed");
+                        mls.LogInfo((object)"FindExitPointPostfix: Fire Exit Allowed");
                         __result = true;
                     }
                 }
@@ -149,12 +149,12 @@ namespace Lockout
                 {
                     if (isLockDown)
                     {
-                        mls.LogInfo((object)"Main Entrance Denied");
-                        HUDManager.Instance.DisplayTip("Access Denied", "The Main Entrance is blocked during lockdown", false, false, "LC_Tip1");
+                        mls.LogInfo((object)"FindExitPointPostfix: Main Entrance Denied");
+                        HUDManager.Instance.DisplayTip("Access Denied", "The Main Entrance is blocked during lockout", false, false, "LC_Tip1");
                     }
                     else
                     {
-                        mls.LogInfo((object)"Main Entrance Allowed");
+                        mls.LogInfo((object)"FindExitPointPostfix: Main Entrance Allowed");
                     }
                     __result = !isLockDown;
                 }
@@ -173,8 +173,8 @@ namespace Lockout
                 {
                     if (!lockoutAlertCalled)
                     {
-                        mls.LogInfo((object)"Lockout Alert");
-                        HUDManager.Instance.DisplayTip("Lockout", "The building is now in lockdown, you can only EXIT through the Fire Exit", false, false, "LC_Tip1");
+                        mls.LogInfo((object)"TimeOfDayEventsPostfix: Lockout Alert");
+                        HUDManager.Instance.DisplayTip("Lockout", "The building is now lockout, you can only EXIT through the Fire Exit", false, false, "LC_Tip1");
                         lockoutAlertCalled = true;
                         isLockDown = true;
                     }
@@ -183,7 +183,7 @@ namespace Lockout
                 {
                     if (!unlockAlertCalled)
                     {
-                        mls.LogInfo((object)"Unlock Alert");
+                        mls.LogInfo((object)"TimeOfDayEventsPostfix: Unlock Alert");
                         HUDManager.Instance.DisplayTip("Unlock", "The building is now unlocked", false, false, "LC_Tip1");
                         unlockAlertCalled = true;
                         isLockDown = false;
