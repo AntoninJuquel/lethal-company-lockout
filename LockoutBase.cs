@@ -1,28 +1,62 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
+using GameNetcodeStuff;
 using HarmonyLib;
+using System.Collections.Generic;
 
 namespace Lockout
 {
     [BepInPlugin(modGUID, modName, modVersion)]
     public class LockoutBase : BaseUnityPlugin
     {
-        private const string modGUID = "com.github.somindras.lethal-company-lockout";
-        private const string modName = "Lockout";
-        private const string modVersion = "1.0.1";
+        public const string modGUID = "com.github.somindras.lethal-company-lockout";
+        public const string modName = "Lockout";
+        public const string modVersion = "1.1.0";
 
         private readonly Harmony harmony = new Harmony(modGUID);
 
         private static LockoutBase Instance;
 
-        internal static ManualLogSource mls;
+        internal static new ManualLogSource Logger { get; private set; }
 
-        private static bool isLockDown = false;
+        public static new LockoutConfig Config { get; internal set; }
+
+        private static bool isLocked = false;
         private static bool lockoutAlertCalled = false;
         private static bool unlockAlertCalled = false;
+        private static float TimeBeforeLockout { get => LockoutConfig.Instance.timeBeforeLockout; }
+        private static float TimeBeforeUnlock { get => LockoutConfig.Instance.timeBeforeUnlock; }
 
-        private static float timeBeforeLockout = 0.2f;
-        private static float timeBeforeUnlock = 0.9f;
+        private static bool CanEnterFireExitDuringLockout { get => LockoutConfig.Instance.canEnterFireExitDuringLockout; }
+        private static bool CanEnterFireExitDuringUnlock { get => LockoutConfig.Instance.canEnterFireExitDuringUnlock; }
+        private static bool CanExitFireExitDuringLockout { get => LockoutConfig.Instance.canExitFireExitDuringLockout; }
+        private static bool CanExitFireExitDuringUnlock { get => LockoutConfig.Instance.canExitFireExitDuringUnlock; }
+
+        private static bool CanEnterMainEntranceDuringLockout { get => LockoutConfig.Instance.canEnterMainEntranceDuringLockout; }
+        private static bool CanEnterMainEntranceDuringUnlock { get => LockoutConfig.Instance.canEnterMainEntranceDuringUnlock; }
+        private static bool CanExitMainEntranceDuringLockout { get => LockoutConfig.Instance.canExitMainEntranceDuringLockout; }
+        private static bool CanExitMainEntranceDuringUnlock { get => LockoutConfig.Instance.canExitMainEntranceDuringUnlock; }
+
+        private static readonly DialogueSegment[] lockoutDialog =
+        [
+            new()
+            {
+                speakerText = "Facility AI",
+                bodyText = "The building is now locked down.",
+                waitTime = 3f,
+            }
+        ];
+
+        private static readonly DialogueSegment[] unlockDialog =
+        [
+            new()
+            {
+                speakerText = "Facility AI",
+                bodyText = "The building is now unlocked.",
+                waitTime = 3f,
+            }
+        ];
+
         private void Awake()
         {
             if (Instance == null)
@@ -30,135 +64,19 @@ namespace Lockout
                 Instance = this;
             }
 
-            mls = BepInEx.Logging.Logger.CreateLogSource(modGUID);
-            mls.LogInfo($"Plugin {modName} is loaded!");
+            Logger = BepInEx.Logging.Logger.CreateLogSource(modGUID);
+            Logger.LogInfo($"Plugin {modName} is loaded!");
 
-            {
-                timeBeforeLockout = Config.Bind("General", "Time Before Lockout", 0.2f, "The time of day when the building lockout (0-1)").Value;
-                if (timeBeforeLockout < 0) { timeBeforeLockout = .2f; }
+            Config = new LockoutConfig(base.Config);
 
-                timeBeforeUnlock = Config.Bind("General", "Time Before Unlock", 0.9f, "The time of day when the building unlocks (0-1)").Value;
-                if (timeBeforeUnlock < 0) { timeBeforeUnlock = .9f; }
+            Logger.LogInfo($"Time Before Lockout: {TimeBeforeLockout}");
+            Logger.LogInfo($"Time Before Unlock: {TimeBeforeUnlock}");
 
-                mls.LogInfo((object)$"Time Before Lockout: {timeBeforeLockout}");
-                mls.LogInfo((object)$"Time Before Unlock: {timeBeforeUnlock}");
-            }
-
-            harmony.PatchAll(typeof(EntranceTeleportPatch));
-            harmony.PatchAll(typeof(HUDManagerPatch));
             harmony.PatchAll(typeof(TimeOfDayPatch));
-            harmony.PatchAll(typeof(StartOfRoundPatch));
-        }
-
-        [HarmonyPatch(typeof(HUDManager))]
-        internal class HUDManagerPatch : HarmonyPatch
-        {
-            [HarmonyPatch("DisplayTip")]
-            [HarmonyPostfix]
-            public static void DisplayTipPostfix(string headerText, string bodyText, bool isWarning = false, bool useSave = false, string prefsKey = "LC_Tip1")
-            {
-                mls.LogInfo((object)(bodyText ?? ""));
-            }
-        }
-
-        [HarmonyPatch(typeof(StartOfRound))]
-        internal class StartOfRoundPatch : HarmonyPatch
-        {
-            [HarmonyPatch("Start")]
-            [HarmonyPostfix]
-            public static void StartPostfix()
-            {
-                isLockDown = false;
-                lockoutAlertCalled = false;
-                unlockAlertCalled = false;
-            }
-        }
-
-        [HarmonyPatch(typeof(EntranceTeleport))]
-        internal class EntranceTeleportPatch : HarmonyPatch
-        {
-            [HarmonyPatch("TeleportPlayer")]
-            [HarmonyPrefix]
-            public static bool TeleportPlayerPrefix(ref bool ___isEntranceToBuilding, ref int ___entranceId, ref bool ___gotExitPoint)
-            {
-                mls.LogInfo((object)$"TeleportPlayerPrefix: Entrance ID: {___entranceId}");
-                mls.LogInfo((object)$"TeleportPlayerPrefix: Is Entrance?: {___isEntranceToBuilding}");
-                mls.LogInfo((object)$"TeleportPlayerPrefix: Got Exit Point?: {___gotExitPoint}");
-                if (!___gotExitPoint)
-                {
-                    mls.LogInfo((object)"TeleportPlayerPrefix: Initial Sweep");
-                }
-                else if (___entranceId != 0) // Fire Exit
-                {
-                    if (___isEntranceToBuilding) // Entering
-                    {
-                        mls.LogInfo((object)"TeleportPlayerPrefix: Fire Exit Denied");
-                        HUDManager.Instance.DisplayTip("Access Denied", "You can only open it from inside", false, false, "LC_Tip1");
-                        return false;
-                    }
-                    else // Exiting
-                    {
-                        mls.LogInfo((object)"TeleportPlayerPrefix: Fire Exit Allowed");
-                        return true;
-                    }
-                }
-
-                if (___entranceId == 0) // Main Entrance
-                {
-                    if (isLockDown)
-                    {
-                        mls.LogInfo((object)"TeleportPlayerPrefix: Main Entrance Denied");
-                        HUDManager.Instance.DisplayTip("Access Denied", "The Main Entrance is blocked during lockout", false, false, "LC_Tip1");
-                    }
-                    else
-                    {
-                        mls.LogInfo((object)"TeleportPlayerPrefix: Main Entrance Allowed");
-                    }
-                    return !isLockDown;
-                }
-
-                return true;
-            }
-
-            [HarmonyPatch("FindExitPoint")]
-            [HarmonyPostfix]
-            public static void FindExitPointPostfix(ref bool ___isEntranceToBuilding, ref int ___entranceId, ref bool ___gotExitPoint, ref bool __result)
-            {
-                mls.LogInfo((object)$"FindExitPointPostfix: Entrance ID: {___entranceId}");
-                mls.LogInfo((object)$"FindExitPointPostfix: Is Entrance?: {___isEntranceToBuilding}");
-                mls.LogInfo((object)$"FindExitPointPostfix: Got Exit Point?: {___gotExitPoint}");
-                if (!___gotExitPoint)
-                {
-                    mls.LogInfo((object)"FindExitPointPostfix: Initial Sweep");
-                }
-                else if (___entranceId != 0) // Fire Exit
-                {
-                    if (___isEntranceToBuilding) // Entering
-                    {
-                        mls.LogInfo((object)"FindExitPointPostfix: Fire Exit Denied");
-                        HUDManager.Instance.DisplayTip("Access Denied", "You can only open it from inside", false, false, "LC_Tip1");
-                        __result = false;
-                    }
-                    else // Exiting
-                    {
-                        mls.LogInfo((object)"FindExitPointPostfix: Fire Exit Allowed");
-                        __result = true;
-                    }
-                }
-                if (___entranceId == 0) // Main Entrance
-                {
-                    if (isLockDown)
-                    {
-                        mls.LogInfo((object)"FindExitPointPostfix: Main Entrance Denied");
-                        HUDManager.Instance.DisplayTip("Access Denied", "The Main Entrance is blocked during lockout", false, false, "LC_Tip1");
-                    }
-                    else
-                    {
-                        mls.LogInfo((object)"FindExitPointPostfix: Main Entrance Allowed");
-                    }
-                    __result = !isLockDown;
-                }
-            }
+            harmony.PatchAll(typeof(EntranceTeleportPatch));
+            harmony.PatchAll(typeof(LockoutConfig));
+            harmony.PatchAll(typeof(PlayerControllerBPatch));
+            harmony.PatchAll(typeof(GameNetworkManagerPatch));
         }
 
         [HarmonyPatch(typeof(TimeOfDay))]
@@ -169,31 +87,150 @@ namespace Lockout
             public static void TimeOfDayEventsPostfix(ref float ___currentDayTime, ref float ___totalTime)
             {
                 float timeRatio = ___currentDayTime / ___totalTime;
-                if (timeRatio > timeBeforeLockout && timeRatio < timeBeforeLockout + .1f)
+                if (timeRatio > TimeBeforeLockout && timeRatio < TimeBeforeLockout + .1f)
                 {
                     if (!lockoutAlertCalled)
                     {
-                        mls.LogInfo((object)"TimeOfDayEventsPostfix: Lockout Alert");
-                        HUDManager.Instance.DisplayTip("Lockout", "The building is now lockout, you can only EXIT through the Fire Exit", false, false, "LC_Tip1");
+                        Logger.LogInfo((object)"TimeOfDayEventsPostfix: Lockout Alert");
+                        HUDManager.Instance.ReadDialogue(lockoutDialog);
                         lockoutAlertCalled = true;
-                        isLockDown = true;
+                        isLocked = true;
                     }
                 }
-                else if (timeRatio > timeBeforeUnlock && timeRatio < timeBeforeUnlock + .1f)
+                else if (timeRatio > TimeBeforeUnlock && timeRatio < TimeBeforeUnlock + .1f)
                 {
                     if (!unlockAlertCalled)
                     {
-                        mls.LogInfo((object)"TimeOfDayEventsPostfix: Unlock Alert");
-                        HUDManager.Instance.DisplayTip("Unlock", "The building is now unlocked", false, false, "LC_Tip1");
+                        Logger.LogInfo((object)"TimeOfDayEventsPostfix: Unlock Alert");
+                        HUDManager.Instance.ReadDialogue(unlockDialog);
                         unlockAlertCalled = true;
-                        isLockDown = false;
+                        isLocked = false;
                     }
                 }
                 else
                 {
+                    isLocked = false;
                     lockoutAlertCalled = false;
                     unlockAlertCalled = false;
                 }
+            }
+        }
+
+        [HarmonyPatch(typeof(EntranceTeleport))]
+        internal class EntranceTeleportPatch : HarmonyPatch
+        {
+            [HarmonyPatch("TeleportPlayer")]
+            [HarmonyPrefix]
+            public static bool TeleportPlayerPrefix(ref bool ___isEntranceToBuilding, ref int ___entranceId, ref bool ___gotExitPoint)
+            {
+                Logger.LogInfo((object)$"TeleportPlayerPrefix: Entrance ID: {___entranceId}");
+                Logger.LogInfo((object)$"TeleportPlayerPrefix: Is Entrance?: {___isEntranceToBuilding}");
+                Logger.LogInfo((object)$"TeleportPlayerPrefix: Got Exit Point?: {___gotExitPoint}");
+
+                bool isMainEntrance = ___entranceId == 0;
+                bool isFireExit = !isMainEntrance;
+                bool isEntering = ___isEntranceToBuilding;
+                bool isExiting = !isEntering;
+
+                if (isLocked)
+                {
+                    if (isEntering && isMainEntrance)
+                    {
+                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanEnterMainEntranceDuringLockout");
+                        if (!CanEnterMainEntranceDuringLockout)
+                            HUDManager.Instance.DisplayTip("???", "The access through the Main Entrance seems blocked", false, false, "LC_Tip1");
+                        return CanEnterMainEntranceDuringLockout;
+                    }
+                    else if (isEntering && isFireExit)
+                    {
+                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanEnterFireExitDuringLockout");
+                        if (!CanEnterFireExitDuringLockout)
+                            HUDManager.Instance.DisplayTip("???", "The access through the Fire Exit seems blocked", false, false, "LC_Tip1");
+                        return CanEnterFireExitDuringLockout;
+                    }
+                    else if (isExiting && isMainEntrance)
+                    {
+                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanExitMainEntranceDuringLockout");
+                        if (!CanExitMainEntranceDuringLockout)
+                            HUDManager.Instance.DisplayTip("???", "Exiting through the Main Entrance seems blockedt", false, false, "LC_Tip1");
+                        return CanExitMainEntranceDuringLockout;
+                    }
+                    else if (isExiting && isFireExit)
+                    {
+                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanExitFireExitDuringLockout");
+                        if (!CanExitFireExitDuringLockout)
+                            HUDManager.Instance.DisplayTip("???", "Exiting through the Fire Exit seems blocked", false, false, "LC_Tip1");
+                        return CanExitFireExitDuringLockout;
+                    }
+                }
+                else
+                {
+                    if (isEntering && isMainEntrance)
+                    {
+                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanEnterMainEntranceDuringUnlock");
+                        if (!CanEnterMainEntranceDuringUnlock)
+                            HUDManager.Instance.DisplayTip("???", "The access through the Main Entrance seems blocked", false, false, "LC_Tip1");
+                        return CanEnterMainEntranceDuringUnlock;
+                    }
+                    else if (isEntering && isFireExit)
+                    {
+                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanEnterFireExitDuringUnlock");
+                        if (!CanEnterFireExitDuringUnlock)
+                            HUDManager.Instance.DisplayTip("???", "The access through the Fire Exit seems blocked", false, false, "LC_Tip1");
+                        return CanEnterFireExitDuringUnlock;
+                    }
+                    else if (isExiting && isMainEntrance)
+                    {
+                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanExitMainEntranceDuringUnlock");
+                        if (!CanExitMainEntranceDuringUnlock)
+                            HUDManager.Instance.DisplayTip("???", "Exiting through the Main Entrance seems blocked", false, false, "LC_Tip1");
+                        return CanExitMainEntranceDuringUnlock;
+                    }
+                    else if (isExiting && isFireExit)
+                    {
+                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanExitFireExitDuringUnlock");
+                        if (!CanExitFireExitDuringUnlock)
+                            HUDManager.Instance.DisplayTip("???", "Exiting through the Fire Exit seems blocked", false, false, "LC_Tip1");
+                        return CanExitFireExitDuringUnlock;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerControllerB))]
+        internal class PlayerControllerBPatch : HarmonyPatch
+        {
+            [HarmonyPatch("ConnectClientToPlayerObject")]
+            [HarmonyPostfix]
+            public static void ConnectClientToPlayerObjectPostfix()
+            {
+                if (LockoutConfig.IsHost)
+                {
+                    Logger.LogInfo("ConnectClientToPlayerObjectPostfix: Host is syncing config");
+                    LockoutConfig.MessageManager.RegisterNamedMessageHandler($"{modName}_OnRequestConfigSync", LockoutConfig.OnRequestSync);
+                    LockoutConfig.Synced = true;
+
+                    return;
+                }
+
+                Logger.LogInfo("ConnectClientToPlayerObjectPostfix: Client is requesting config sync");
+                LockoutConfig.Synced = false;
+                LockoutConfig.MessageManager.RegisterNamedMessageHandler($"{modName}_OnReceiveConfigSync", LockoutConfig.OnReceiveSync);
+                LockoutConfig.RequestSync();
+            }
+        }
+
+        [HarmonyPatch(typeof(GameNetworkManager))]
+        internal class GameNetworkManagerPatch : HarmonyPatch
+        {
+            [HarmonyPatch("StartDisconnect")]
+            [HarmonyPostfix]
+            public static void StartDisconnectPostfix()
+            {
+                Logger.LogInfo("StartDisconnectPostfix: Disconnecting");
+                LockoutConfig.RevertSync();
             }
         }
     }
