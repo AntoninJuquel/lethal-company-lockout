@@ -87,7 +87,14 @@ namespace Lockout
             public static void TimeOfDayEventsPostfix(ref float ___currentDayTime, ref float ___totalTime)
             {
                 float timeRatio = ___currentDayTime / ___totalTime;
-                if (timeRatio > TimeBeforeLockout && timeRatio < TimeBeforeLockout + .1f)
+
+                if (timeRatio < TimeBeforeLockout)
+                {
+                    isLocked = false;
+                    lockoutAlertCalled = false;
+                    unlockAlertCalled = false;
+                }
+                else if (timeRatio < TimeBeforeUnlock)
                 {
                     if (!lockoutAlertCalled)
                     {
@@ -97,7 +104,7 @@ namespace Lockout
                         isLocked = true;
                     }
                 }
-                else if (timeRatio > TimeBeforeUnlock && timeRatio < TimeBeforeUnlock + .1f)
+                else
                 {
                     if (!unlockAlertCalled)
                     {
@@ -106,12 +113,6 @@ namespace Lockout
                         unlockAlertCalled = true;
                         isLocked = false;
                     }
-                }
-                else
-                {
-                    isLocked = false;
-                    lockoutAlertCalled = false;
-                    unlockAlertCalled = false;
                 }
             }
         }
@@ -136,28 +137,28 @@ namespace Lockout
                 {
                     if (isEntering && isMainEntrance)
                     {
-                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanEnterMainEntranceDuringLockout");
+                        Logger.LogInfo((object)$"TeleportPlayerPrefix: CanEnterMainEntranceDuringLockout {CanEnterMainEntranceDuringLockout}");
                         if (!CanEnterMainEntranceDuringLockout)
                             HUDManager.Instance.DisplayTip("???", "The access through the Main Entrance seems blocked", false, false, "LC_Tip1");
                         return CanEnterMainEntranceDuringLockout;
                     }
                     else if (isEntering && isFireExit)
                     {
-                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanEnterFireExitDuringLockout");
+                        Logger.LogInfo((object)$"TeleportPlayerPrefix: CanEnterFireExitDuringLockout {CanEnterFireExitDuringLockout}");
                         if (!CanEnterFireExitDuringLockout)
                             HUDManager.Instance.DisplayTip("???", "The access through the Fire Exit seems blocked", false, false, "LC_Tip1");
                         return CanEnterFireExitDuringLockout;
                     }
                     else if (isExiting && isMainEntrance)
                     {
-                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanExitMainEntranceDuringLockout");
+                        Logger.LogInfo((object)$"TeleportPlayerPrefix: CanExitMainEntranceDuringLockout {CanExitMainEntranceDuringLockout}");
                         if (!CanExitMainEntranceDuringLockout)
                             HUDManager.Instance.DisplayTip("???", "Exiting through the Main Entrance seems blockedt", false, false, "LC_Tip1");
                         return CanExitMainEntranceDuringLockout;
                     }
                     else if (isExiting && isFireExit)
                     {
-                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanExitFireExitDuringLockout");
+                        Logger.LogInfo((object)$"TeleportPlayerPrefix: CanExitFireExitDuringLockout {CanExitFireExitDuringLockout}");
                         if (!CanExitFireExitDuringLockout)
                             HUDManager.Instance.DisplayTip("???", "Exiting through the Fire Exit seems blocked", false, false, "LC_Tip1");
                         return CanExitFireExitDuringLockout;
@@ -167,28 +168,28 @@ namespace Lockout
                 {
                     if (isEntering && isMainEntrance)
                     {
-                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanEnterMainEntranceDuringUnlock");
+                        Logger.LogInfo((object)$"TeleportPlayerPrefix: CanEnterMainEntranceDuringUnlock {CanEnterMainEntranceDuringUnlock}");
                         if (!CanEnterMainEntranceDuringUnlock)
                             HUDManager.Instance.DisplayTip("???", "The access through the Main Entrance seems blocked", false, false, "LC_Tip1");
                         return CanEnterMainEntranceDuringUnlock;
                     }
                     else if (isEntering && isFireExit)
                     {
-                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanEnterFireExitDuringUnlock");
+                        Logger.LogInfo((object)$"TeleportPlayerPrefix: CanEnterFireExitDuringUnlock {CanEnterFireExitDuringUnlock}");
                         if (!CanEnterFireExitDuringUnlock)
                             HUDManager.Instance.DisplayTip("???", "The access through the Fire Exit seems blocked", false, false, "LC_Tip1");
                         return CanEnterFireExitDuringUnlock;
                     }
                     else if (isExiting && isMainEntrance)
                     {
-                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanExitMainEntranceDuringUnlock");
+                        Logger.LogInfo((object)$"TeleportPlayerPrefix: CanExitMainEntranceDuringUnlock {CanExitMainEntranceDuringUnlock}");
                         if (!CanExitMainEntranceDuringUnlock)
                             HUDManager.Instance.DisplayTip("???", "Exiting through the Main Entrance seems blocked", false, false, "LC_Tip1");
                         return CanExitMainEntranceDuringUnlock;
                     }
                     else if (isExiting && isFireExit)
                     {
-                        Logger.LogInfo((object)"TeleportPlayerPrefix: CanExitFireExitDuringUnlock");
+                        Logger.LogInfo((object)$"TeleportPlayerPrefix: CanExitFireExitDuringUnlock {CanExitFireExitDuringUnlock}");
                         if (!CanExitFireExitDuringUnlock)
                             HUDManager.Instance.DisplayTip("???", "Exiting through the Fire Exit seems blocked", false, false, "LC_Tip1");
                         return CanExitFireExitDuringUnlock;

@@ -47,6 +47,18 @@ namespace Lockout
             {
                 timeBeforeUnlock = 0.9f;
             }
+
+            LockoutBase.Logger.LogInfo("Config loaded.");
+            LockoutBase.Logger.LogInfo($"Time Before Lockout: {timeBeforeLockout}");
+            LockoutBase.Logger.LogInfo($"Time Before Unlock: {timeBeforeUnlock}");
+            LockoutBase.Logger.LogInfo($"Can Enter Fire Exit During Lockout: {canEnterFireExitDuringLockout}");
+            LockoutBase.Logger.LogInfo($"Can Enter Fire Exit During Unlock: {canEnterFireExitDuringUnlock}");
+            LockoutBase.Logger.LogInfo($"Can Exit Fire Exit During Lockout: {canExitFireExitDuringLockout}");
+            LockoutBase.Logger.LogInfo($"Can Exit Fire Exit During Unlock: {canExitFireExitDuringUnlock}");
+            LockoutBase.Logger.LogInfo($"Can Enter Main Entrance During Lockout: {canEnterMainEntranceDuringLockout}");
+            LockoutBase.Logger.LogInfo($"Can Enter Main Entrance During Unlock: {canEnterMainEntranceDuringUnlock}");
+            LockoutBase.Logger.LogInfo($"Can Exit Main Entrance During Lockout: {canExitMainEntranceDuringLockout}");
+            LockoutBase.Logger.LogInfo($"Can Exit Main Entrance During Unlock: {canExitMainEntranceDuringUnlock}");
         }
 
         public static void RequestSync()
