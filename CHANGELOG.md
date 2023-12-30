@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.2](https://github.com/AntoninJuquel/lethal-company-lockout/compare/v1.1.1...v1.1.2) (2023-12-30)
+
+
+### Bug Fixes
+
+* added logs and handle time correctly ([4b7a1d1](https://github.com/AntoninJuquel/lethal-company-lockout/commit/4b7a1d10801dab1bbb0db2489693415d7a48a185))
+
 ### [1.1.1](https://github.com/AntoninJuquel/lethal-company-lockout/compare/v1.1.0...v1.1.1) (2023-12-30)
 
 ## [1.1.0](https://github.com/AntoninJuquel/lethal-company-lockout/compare/v1.0.1...v1.1.0) (2023-12-30)
