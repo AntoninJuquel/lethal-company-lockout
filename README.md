@@ -16,7 +16,20 @@ You can only enter the facility by the **Main Entrance** because **Fire Exit** a
 
 ## Configuration
 
-You can configure the time before the facility is locked out and unlocked again in the config file generated after launching the game with the mod once.
+After launching the game with the mod once you will be able to configure:
+- **Timers**
+    - `Time Before Lockout` - The time before the facility is locked out (0-1) time range ratio of a day
+    - `Time Before Unlock` - The time before the facility is unlocked again (0-1) time range ratio of a day
+- **Fire Exit**
+    - `Can Enter Fire Exit During Lockout` - Whether or not you can enter the facility by the **Fire Exit** during lockout
+    - `Can Exit Fire Exit During Lockout` - Whether or not you can exit the facility by the **Fire Exit** during lockout
+    - `Can Enter Fire Exit During Unlock` - Whether or not you can enter the facility by the **Fire Exit** during unlock
+    - `Can Exit Fire Exit During Unlock` - Whether or not you can exit the facility by the **Fire Exit** during unlock
+- **Main Entrance**
+    - `Can Enter Main Entrance During Lockout` - Whether or not you can enter the facility by the **Main Entrance** during lockout
+    - `Can Exit Main Entrance During Lockout` - Whether or not you can exit the facility by the **Main Entrance** during lockout
+    - `Can Enter Main Entrance During Unlock` - Whether or not you can enter the facility by the **Main Entrance** during unlock
+    - `Can Exit Main Entrance During Unlock` - Whether or not you can exit the facility by the **Main Entrance** during unlock
 
 ## Requirements
 - BepInEx
@@ -28,3 +41,5 @@ You can configure the time before the facility is locked out and unlocked again 
 3. Navigate to Lethal Company folder (Go to your Steam Library =>  Right click on Lethal Company => Manage => Browse local files)
 4. Open the BepInEx folder and then open the plugins folder
 5. Paste the Lockout.dll file inside
+
+Or use the [Thunderstore Mod Manager](https://h3vr.thunderstore.io)
