@@ -2,18 +2,13 @@
 using BepInEx.Logging;
 using GameNetcodeStuff;
 using HarmonyLib;
-using System.Collections.Generic;
 
 namespace Lockout
 {
-    [BepInPlugin(modGUID, modName, modVersion)]
+    [BepInPlugin(LockoutInfo.GUID, LockoutInfo.NAME, LockoutInfo.VERSION)]
     public class LockoutBase : BaseUnityPlugin
     {
-        public const string modGUID = "com.github.somindras.lethal-company-lockout";
-        public const string modName = "Lockout";
-        public const string modVersion = "1.1.2";
-
-        private readonly Harmony harmony = new Harmony(modGUID);
+        private readonly Harmony harmony = new Harmony(LockoutInfo.GUID);
 
         private static LockoutBase Instance;
 
@@ -21,9 +16,10 @@ namespace Lockout
 
         public static new LockoutConfig Config { get; internal set; }
 
+        private static float timeRatio = 0f;
+
         private static bool isLocked = false;
-        private static bool lockoutAlertCalled = false;
-        private static bool unlockAlertCalled = false;
+        private static bool powerOn = true;
         private static float TimeBeforeLockout { get => LockoutConfig.Instance.timeBeforeLockout; }
         private static float TimeBeforeUnlock { get => LockoutConfig.Instance.timeBeforeUnlock; }
 
@@ -36,6 +32,8 @@ namespace Lockout
         private static bool CanEnterMainEntranceDuringUnlock { get => LockoutConfig.Instance.canEnterMainEntranceDuringUnlock; }
         private static bool CanExitMainEntranceDuringLockout { get => LockoutConfig.Instance.canExitMainEntranceDuringLockout; }
         private static bool CanExitMainEntranceDuringUnlock { get => LockoutConfig.Instance.canExitMainEntranceDuringUnlock; }
+
+        private static bool CanPowerOffLockout { get => LockoutConfig.Instance.canPowerOffLockout; }
 
         private static readonly DialogueSegment[] lockoutDialog =
         [
@@ -64,19 +62,17 @@ namespace Lockout
                 Instance = this;
             }
 
-            Logger = BepInEx.Logging.Logger.CreateLogSource(modGUID);
-            Logger.LogInfo($"Plugin {modName} is loaded!");
+            Logger = BepInEx.Logging.Logger.CreateLogSource(LockoutInfo.GUID);
+            Logger.LogInfo($"Plugin {LockoutInfo.NAME} is loaded!");
 
             Config = new LockoutConfig(base.Config);
-
-            Logger.LogInfo($"Time Before Lockout: {TimeBeforeLockout}");
-            Logger.LogInfo($"Time Before Unlock: {TimeBeforeUnlock}");
 
             harmony.PatchAll(typeof(TimeOfDayPatch));
             harmony.PatchAll(typeof(EntranceTeleportPatch));
             harmony.PatchAll(typeof(LockoutConfig));
             harmony.PatchAll(typeof(PlayerControllerBPatch));
             harmony.PatchAll(typeof(GameNetworkManagerPatch));
+            harmony.PatchAll(typeof(RoundManagerPatch));
         }
 
         [HarmonyPatch(typeof(TimeOfDay))]
@@ -84,33 +80,29 @@ namespace Lockout
         {
             [HarmonyPatch("TimeOfDayEvents")]
             [HarmonyPostfix]
-            public static void TimeOfDayEventsPostfix(ref float ___currentDayTime, ref float ___totalTime)
+            public static void TimeOfDayEventsPostfix(float ___currentDayTime, float ___totalTime)
             {
-                float timeRatio = ___currentDayTime / ___totalTime;
+                timeRatio = ___currentDayTime / ___totalTime;
 
-                if (timeRatio < TimeBeforeLockout)
+                if (timeRatio < TimeBeforeLockout || (CanPowerOffLockout && !powerOn))
                 {
                     isLocked = false;
-                    lockoutAlertCalled = false;
-                    unlockAlertCalled = false;
                 }
                 else if (timeRatio < TimeBeforeUnlock)
                 {
-                    if (!lockoutAlertCalled)
+                    if (!isLocked)
                     {
                         Logger.LogInfo((object)"TimeOfDayEventsPostfix: Lockout Alert");
                         HUDManager.Instance.ReadDialogue(lockoutDialog);
-                        lockoutAlertCalled = true;
                         isLocked = true;
                     }
                 }
                 else
                 {
-                    if (!unlockAlertCalled)
+                    if (isLocked)
                     {
                         Logger.LogInfo((object)"TimeOfDayEventsPostfix: Unlock Alert");
                         HUDManager.Instance.ReadDialogue(unlockDialog);
-                        unlockAlertCalled = true;
                         isLocked = false;
                     }
                 }
@@ -122,11 +114,10 @@ namespace Lockout
         {
             [HarmonyPatch("TeleportPlayer")]
             [HarmonyPrefix]
-            public static bool TeleportPlayerPrefix(ref bool ___isEntranceToBuilding, ref int ___entranceId, ref bool ___gotExitPoint)
+            public static bool TeleportPlayerPrefix(bool ___isEntranceToBuilding, int ___entranceId)
             {
                 Logger.LogInfo((object)$"TeleportPlayerPrefix: Entrance ID: {___entranceId}");
                 Logger.LogInfo((object)$"TeleportPlayerPrefix: Is Entrance?: {___isEntranceToBuilding}");
-                Logger.LogInfo((object)$"TeleportPlayerPrefix: Got Exit Point?: {___gotExitPoint}");
 
                 bool isMainEntrance = ___entranceId == 0;
                 bool isFireExit = !isMainEntrance;
@@ -153,7 +144,7 @@ namespace Lockout
                     {
                         Logger.LogInfo((object)$"TeleportPlayerPrefix: CanExitMainEntranceDuringLockout {CanExitMainEntranceDuringLockout}");
                         if (!CanExitMainEntranceDuringLockout)
-                            HUDManager.Instance.DisplayTip("???", "Exiting through the Main Entrance seems blockedt", false, false, "LC_Tip1");
+                            HUDManager.Instance.DisplayTip("???", "Exiting through the Main Entrance seems blocked", false, false, "LC_Tip1");
                         return CanExitMainEntranceDuringLockout;
                     }
                     else if (isExiting && isFireExit)
@@ -210,7 +201,7 @@ namespace Lockout
                 if (LockoutConfig.IsHost)
                 {
                     Logger.LogInfo("ConnectClientToPlayerObjectPostfix: Host is syncing config");
-                    LockoutConfig.MessageManager.RegisterNamedMessageHandler($"{modName}_OnRequestConfigSync", LockoutConfig.OnRequestSync);
+                    LockoutConfig.MessageManager.RegisterNamedMessageHandler($"{LockoutInfo.NAME}_OnRequestConfigSync", LockoutConfig.OnRequestSync);
                     LockoutConfig.Synced = true;
 
                     return;
@@ -218,7 +209,7 @@ namespace Lockout
 
                 Logger.LogInfo("ConnectClientToPlayerObjectPostfix: Client is requesting config sync");
                 LockoutConfig.Synced = false;
-                LockoutConfig.MessageManager.RegisterNamedMessageHandler($"{modName}_OnReceiveConfigSync", LockoutConfig.OnReceiveSync);
+                LockoutConfig.MessageManager.RegisterNamedMessageHandler($"{LockoutInfo.NAME}_OnReceiveConfigSync", LockoutConfig.OnReceiveSync);
                 LockoutConfig.RequestSync();
             }
         }
@@ -232,6 +223,24 @@ namespace Lockout
             {
                 Logger.LogInfo("StartDisconnectPostfix: Disconnecting");
                 LockoutConfig.RevertSync();
+            }
+        }
+
+        [HarmonyPatch(typeof(RoundManager))]
+        internal class RoundManagerPatch : HarmonyPatch
+        {
+            [HarmonyPatch("SwitchPower")]
+            [HarmonyPostfix]
+            public static void SwitchPowerPostfix(bool on)
+            {
+                if (isLocked && CanPowerOffLockout && !on)
+                {
+                    Logger.LogInfo("SwitchPowerPostfix: Powering off");
+                    HUDManager.Instance.ReadDialogue(unlockDialog);
+                    isLocked = false;
+                }
+
+                powerOn = on;
             }
         }
     }

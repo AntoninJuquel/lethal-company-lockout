@@ -21,6 +21,8 @@ namespace Lockout
         public bool canExitMainEntranceDuringLockout = false;
         public bool canExitMainEntranceDuringUnlock = true;
 
+        public bool canPowerOffLockout = true;
+
         public LockoutConfig(ConfigFile cfg)
         {
             InitInstance(this);
@@ -37,6 +39,8 @@ namespace Lockout
             canEnterMainEntranceDuringUnlock = cfg.Bind("Main Entrance", "Can Enter Main Entrance During Unlock", true, "Can enter the main entrance during unlock").Value;
             canExitMainEntranceDuringLockout = cfg.Bind("Main Entrance", "Can Exit Main Entrance During Lockout", false, "Can exit the main entrance during lockout").Value;
             canExitMainEntranceDuringUnlock = cfg.Bind("Main Entrance", "Can Exit Main Entrance During Unlock", true, "Can exit the main entrance during unlock").Value;
+
+            canPowerOffLockout = cfg.Bind("Power", "Can Power Off Lockout", true, "Can power off the lockout").Value;
 
             if (timeBeforeLockout < 0 || timeBeforeLockout > 1)
             {
@@ -59,6 +63,7 @@ namespace Lockout
             LockoutBase.Logger.LogInfo($"Can Enter Main Entrance During Unlock: {canEnterMainEntranceDuringUnlock}");
             LockoutBase.Logger.LogInfo($"Can Exit Main Entrance During Lockout: {canExitMainEntranceDuringLockout}");
             LockoutBase.Logger.LogInfo($"Can Exit Main Entrance During Unlock: {canExitMainEntranceDuringUnlock}");
+            LockoutBase.Logger.LogInfo($"Can Power Off Lockout: {canPowerOffLockout}");
         }
 
         public static void RequestSync()
@@ -66,7 +71,7 @@ namespace Lockout
             if (!IsClient) return;
 
             using FastBufferWriter stream = new(IntSize, Allocator.Temp);
-            MessageManager.SendNamedMessage($"{LockoutBase.modName}_OnRequestConfigSync", 0uL, stream);
+            MessageManager.SendNamedMessage($"{LockoutInfo.NAME}_OnRequestConfigSync", 0uL, stream);
         }
         public static void OnRequestSync(ulong clientId, FastBufferReader _)
         {
@@ -84,7 +89,7 @@ namespace Lockout
                 stream.WriteValueSafe(in value, default);
                 stream.WriteBytesSafe(array);
 
-                MessageManager.SendNamedMessage($"{LockoutBase.modName}_OnReceiveConfigSync", clientId, stream);
+                MessageManager.SendNamedMessage($"{LockoutInfo.NAME}_OnReceiveConfigSync", clientId, stream);
             }
             catch (Exception e)
             {
