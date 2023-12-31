@@ -12,7 +12,7 @@ After a period of time a popup will appear on your screen telling you that the f
 
 After another period of time a popup will inform you that the facility is unlocked again, letting you enter by the **Main Entrance** again and exit by any door.
 
-You can only enter the facility by the **Main Entrance** because **Fire Exit** are locked from the inside.
+By default you can only enter the facility by the **Main Entrance** and exit by the **Fire Exit** and powering off the facility will unlock the facility.
 
 ## Configuration
 
@@ -30,6 +30,8 @@ After launching the game with the mod once you will be able to configure:
     - `Can Exit Main Entrance During Lockout` - Whether or not you can exit the facility by the **Main Entrance** during lockout
     - `Can Enter Main Entrance During Unlock` - Whether or not you can enter the facility by the **Main Entrance** during unlock
     - `Can Exit Main Entrance During Unlock` - Whether or not you can exit the facility by the **Main Entrance** during unlock
+- **Power**
+    - `Can Power Off Lockout` - Whether or not you switching the power breaker affects the lockout
 
 ## Requirements
 - BepInEx
