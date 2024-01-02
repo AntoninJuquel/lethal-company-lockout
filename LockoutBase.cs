@@ -83,10 +83,21 @@ namespace Lockout
             public static void TimeOfDayEventsPostfix(float ___currentDayTime, float ___totalTime)
             {
                 timeRatio = ___currentDayTime / ___totalTime;
-
+                /*
+                Logger.LogInfo((object)$"TimeOfDayEventsPostfix: Current Day Time: {___currentDayTime}");
+                Logger.LogInfo((object)$"TimeOfDayEventsPostfix: Total Time: {___totalTime}");
+                Logger.LogInfo((object)$"TimeOfDayEventsPostfix: Time Ratio: {timeRatio}");
+                Logger.LogInfo((object)$"TimeOfDayEventsPostfix: PowerOn: {powerOn}");
+                Logger.LogInfo((object)$"TimeOfDayEventsPostfix: IsLocked: {isLocked}");
+                */
                 if (timeRatio < TimeBeforeLockout || (CanPowerOffLockout && !powerOn))
                 {
-                    isLocked = false;
+                    if (isLocked)
+                    {
+                        Logger.LogInfo((object)"TimeOfDayEventsPostfix: Unlock Alert");
+                        HUDManager.Instance.ReadDialogue(unlockDialog);
+                        isLocked = false;
+                    }
                 }
                 else if (timeRatio < TimeBeforeUnlock)
                 {
@@ -229,17 +240,33 @@ namespace Lockout
         [HarmonyPatch(typeof(RoundManager))]
         internal class RoundManagerPatch : HarmonyPatch
         {
-            [HarmonyPatch("SwitchPower")]
+            [HarmonyPatch("Start")]
             [HarmonyPostfix]
-            public static void SwitchPowerPostfix(bool on)
+            private static void StartPostfix()
             {
-                if (isLocked && CanPowerOffLockout && !on)
-                {
-                    Logger.LogInfo("SwitchPowerPostfix: Powering off");
-                    HUDManager.Instance.ReadDialogue(unlockDialog);
-                    isLocked = false;
-                }
+                Logger.LogInfo("Start: Registering event handlers");
+                RoundManager.Instance.onPowerSwitch.AddListener(OnPowerSwitch);
+            }
 
+            [HarmonyPatch("OnDestroy")]
+            [HarmonyPostfix]
+            private static void OnDestroy()
+            {
+                Logger.LogInfo("OnDestroy: Unregistering event handlers");
+                RoundManager.Instance.onPowerSwitch.RemoveListener(OnPowerSwitch);
+            }
+
+            [HarmonyPatch("SetLevelObjectVariables")]
+            [HarmonyPrefix]
+            private static void SetLevelObjectVariablesPrefix()
+            {
+                OnPowerSwitch(true);
+                isLocked = false;
+            }
+
+            private static void OnPowerSwitch(bool on)
+            {
+                Logger.LogInfo((object)$"OnPowerSwitch: {on}");
                 powerOn = on;
             }
         }

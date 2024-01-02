@@ -45,10 +45,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="Patches\" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <None Update="README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
