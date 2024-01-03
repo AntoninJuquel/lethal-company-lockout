@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/AntoninJuquel/lethal-company-lockout/compare/v1.2.1...v1.3.0) (2024-01-03)
+
+
+### Features
+
+* can use key to bypass the lockout ([3f91d4a](https://github.com/AntoninJuquel/lethal-company-lockout/commit/3f91d4ab22416ca0ea52200e785992f5f045db9a))
+
 ### [1.2.1](https://github.com/AntoninJuquel/lethal-company-lockout/compare/v1.2.0...v1.2.1) (2024-01-02)
 
 
