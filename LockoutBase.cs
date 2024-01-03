@@ -16,9 +16,9 @@ namespace Lockout
 
         public enum KeyUsage
         {
-            No,
-            HoldOnHand,
-            InInventory,
+            No = 0,
+            Inventory = 1,
+            Hand = 2,
         }
 
         private static float timeRatio = 0f;
@@ -135,15 +135,11 @@ namespace Lockout
                 PlayerControllerB localPlayer = GameNetworkManager.Instance.localPlayerController;
                 switch (CanUseKey)
                 {
-                    case KeyUsage.HoldOnHand:
-                        bool holdingKey = localPlayer.currentlyHeldObjectServer && localPlayer.currentlyHeldObjectServer is KeyItem;
-                        if (holdingKey)
-                        {
-                            localPlayer.DespawnHeldObject();
-                        }
-                        Logger.LogInfo($"UseKey: was ({(holdingKey ? "ABLE" : "UNABLE")}) to use currently held key");
-                        return holdingKey;
-                    case KeyUsage.InInventory:
+                    case KeyUsage.No:
+                        Logger.LogInfo($"UseKey: config DISABLED key usage: {CanUseKey}");
+                        return false;
+                    case KeyUsage.Inventory:
+                    default:
                         int keyIndex = Array.FindIndex(localPlayer.ItemSlots, item => item && item is KeyItem);
                         bool hasKeyInInventory = keyIndex != -1;
                         if (hasKeyInInventory)
@@ -153,10 +149,14 @@ namespace Lockout
                         }
                         Logger.LogInfo($"UseKey: was ({(hasKeyInInventory ? "ABLE" : "UNABLE")}) to use key in inventory got slot {keyIndex}");
                         return hasKeyInInventory;
-                    case KeyUsage.No:
-                    default:
-                        Logger.LogInfo($"UseKey: config DISABLED key usage: {CanUseKey}");
-                        return false;
+                    case KeyUsage.Hand:
+                        bool holdingKey = localPlayer.currentlyHeldObjectServer && localPlayer.currentlyHeldObjectServer is KeyItem;
+                        if (holdingKey)
+                        {
+                            localPlayer.DespawnHeldObject();
+                        }
+                        Logger.LogInfo($"UseKey: was ({(holdingKey ? "ABLE" : "UNABLE")}) to use currently held key");
+                        return holdingKey;
                 }
             }
             private static bool CanEnter(bool isMainEntrance)

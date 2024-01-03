@@ -23,7 +23,7 @@ namespace Lockout
 
         public bool canPowerOffLockout = true;
 
-        public LockoutBase.KeyUsage canUseKey = LockoutBase.KeyUsage.HoldOnHand;
+        public LockoutBase.KeyUsage canUseKey = LockoutBase.KeyUsage.Inventory;
 
         public LockoutConfig(ConfigFile cfg)
         {
@@ -44,16 +44,31 @@ namespace Lockout
 
             canPowerOffLockout = cfg.Bind("Power", "Can Power Off Lockout", true, "Can power off the lockout").Value;
 
-            canUseKey = cfg.Bind("Key", "Can use key", LockoutBase.KeyUsage.HoldOnHand, "Can use the key to enter/exit during lockout either by holding it on hand or having it in the inventory or not at all").Value;
+            canUseKey = (LockoutBase.KeyUsage)cfg.Bind("Key", "Can use key", 1, "Can use the key to enter/exit during lockout |0: No|1: Key in inventory slot|2: Key must be held|").Value;
 
             if (timeBeforeLockout < 0 || timeBeforeLockout > 1)
             {
+                LockoutBase.Logger.LogWarning($"Time Before Lockout was set to {timeBeforeLockout}. Setting to default.");
                 timeBeforeLockout = 0.2f;
             }
 
             if (timeBeforeUnlock < 0 || timeBeforeUnlock > 1)
             {
+                LockoutBase.Logger.LogWarning($"Time Before Unlock was set to {timeBeforeUnlock}. Setting to default.");
                 timeBeforeUnlock = 0.9f;
+            }
+
+            if (timeBeforeLockout > timeBeforeUnlock)
+            {
+                LockoutBase.Logger.LogWarning($"Time Before Lockout was set to {timeBeforeLockout} and is Greater than Time Before Unlock was set to {timeBeforeUnlock}. Setting to default.");
+                timeBeforeLockout = 0.2f;
+                timeBeforeUnlock = 0.9f;
+            }
+
+            if (!Enum.IsDefined(typeof(LockoutBase.KeyUsage), canUseKey))
+            {
+                LockoutBase.Logger.LogWarning($"Can Use Key was set to {canUseKey}. Setting to default.");
+                canUseKey = LockoutBase.KeyUsage.Inventory;
             }
 
             LockoutBase.Logger.LogInfo("Config loaded.");
