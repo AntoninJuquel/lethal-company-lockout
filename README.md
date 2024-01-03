@@ -45,3 +45,7 @@ After launching the game with the mod once you will be able to configure:
 5. Paste the Lockout.dll file inside
 
 Or use the [Thunderstore Mod Manager](https://h3vr.thunderstore.io)
+
+## Report and feedback
+
+If you have any issues, questions or suggestions please use the [GitHub Issues](https://github.com/AntoninJuquel/lethal-company-lockout/issues/new/choose) or contact me on Discord **somindras**.

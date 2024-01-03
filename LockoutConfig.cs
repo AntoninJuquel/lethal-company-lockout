@@ -23,6 +23,8 @@ namespace Lockout
 
         public bool canPowerOffLockout = true;
 
+        public LockoutBase.KeyUsage canUseKey = LockoutBase.KeyUsage.HoldOnHand;
+
         public LockoutConfig(ConfigFile cfg)
         {
             InitInstance(this);
@@ -41,6 +43,8 @@ namespace Lockout
             canExitMainEntranceDuringUnlock = cfg.Bind("Main Entrance", "Can Exit Main Entrance During Unlock", true, "Can exit the main entrance during unlock").Value;
 
             canPowerOffLockout = cfg.Bind("Power", "Can Power Off Lockout", true, "Can power off the lockout").Value;
+
+            canUseKey = cfg.Bind("Key", "Can use key", LockoutBase.KeyUsage.HoldOnHand, "Can use the key to bypass lockout either by holding it on hand or having it in the inventory or not at all").Value;
 
             if (timeBeforeLockout < 0 || timeBeforeLockout > 1)
             {
@@ -64,6 +68,7 @@ namespace Lockout
             LockoutBase.Logger.LogInfo($"Can Exit Main Entrance During Lockout: {canExitMainEntranceDuringLockout}");
             LockoutBase.Logger.LogInfo($"Can Exit Main Entrance During Unlock: {canExitMainEntranceDuringUnlock}");
             LockoutBase.Logger.LogInfo($"Can Power Off Lockout: {canPowerOffLockout}");
+            LockoutBase.Logger.LogInfo($"Can Use Key: {canUseKey}");
         }
 
         public static void RequestSync()
