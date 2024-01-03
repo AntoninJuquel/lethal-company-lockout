@@ -32,6 +32,8 @@ After launching the game with the mod once you will be able to configure:
     - `Can Exit Main Entrance During Unlock` - Whether or not you can exit the facility by the **Main Entrance** during unlock
 - **Power**
     - `Can Power Off Lockout` - Whether or not you switching the power breaker affects the lockout
+- **Key**
+    - `Can Use Key` -  Can use the key to enter/exit during **lockout** either by holding it on hand or having it in the inventory or not at all (No, HoldOnHand, InInventory)
 
 ## Requirements
 - BepInEx

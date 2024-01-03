@@ -44,7 +44,7 @@ namespace Lockout
 
             canPowerOffLockout = cfg.Bind("Power", "Can Power Off Lockout", true, "Can power off the lockout").Value;
 
-            canUseKey = cfg.Bind("Key", "Can use key", LockoutBase.KeyUsage.HoldOnHand, "Can use the key to bypass lockout either by holding it on hand or having it in the inventory or not at all").Value;
+            canUseKey = cfg.Bind("Key", "Can use key", LockoutBase.KeyUsage.HoldOnHand, "Can use the key to enter/exit during lockout either by holding it on hand or having it in the inventory or not at all").Value;
 
             if (timeBeforeLockout < 0 || timeBeforeLockout > 1)
             {
