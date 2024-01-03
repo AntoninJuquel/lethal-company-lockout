@@ -1,6 +1,6 @@
 {
     "name": "Lockout",
-    "version_number": "1.2.1",
+    "version_number": "1.3.0",
     "website_url": "https://github.com/AntoninJuquel/lethal-company-lockout",
     "description": "Lockout the facility for a certain amount of time.",
     "dependencies": [
