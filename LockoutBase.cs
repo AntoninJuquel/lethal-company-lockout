@@ -3,6 +3,7 @@ using BepInEx.Logging;
 using GameNetcodeStuff;
 using HarmonyLib;
 using System;
+using UnityEngine;
 
 namespace Lockout
 {
@@ -62,6 +63,44 @@ namespace Lockout
             }
         ];
 
+        private static DialogueSegment[] StartDialog => [
+            new()
+            {
+                speakerText = "Facility AI",
+                bodyText = $"The building will be locked down between {TimeToString(TimeBeforeLockout)} and {TimeToString(TimeBeforeUnlock)}.",
+                waitTime = 3f,
+            }
+        ];
+
+        private static bool ShowLockoutHoursMessage => LockoutConfig.Instance.showLockoutHoursMessage;
+        private static bool ShowLockoutMessage => LockoutConfig.Instance.showLockoutMessage;
+        private static bool ShowUnlockMessage => LockoutConfig.Instance.showUnlockMessage;
+
+        private static string TimeToString(float time)
+        {
+            int num = (int)(time * (60f * TimeOfDay.Instance.numberOfHours)) + 360;
+            int num2 = (int)Mathf.Floor(num / 60);
+            string amPM;
+            if (num2 >= 24)
+            {
+                return "12:00 AM";
+            }
+            if (num2 < 12)
+            {
+                amPM = "AM";
+            }
+            else
+            {
+                amPM = "PM";
+            }
+            if (num2 > 12)
+            {
+                num2 %= 12;
+            }
+            int num3 = num % 60;
+            return $"{num2:00}:{num3:00}".TrimStart('0') + amPM;
+        }
+
         private void Awake()
         {
             if (Instance == null)
@@ -90,19 +129,13 @@ namespace Lockout
             public static void TimeOfDayEventsPostfix(float ___currentDayTime, float ___totalTime)
             {
                 timeRatio = ___currentDayTime / ___totalTime;
-                /*
-                Logger.LogInfo((object)$"TimeOfDayEventsPostfix: Current Day Time: {___currentDayTime}");
-                Logger.LogInfo((object)$"TimeOfDayEventsPostfix: Total Time: {___totalTime}");
-                Logger.LogInfo((object)$"TimeOfDayEventsPostfix: Time Ratio: {timeRatio}");
-                Logger.LogInfo((object)$"TimeOfDayEventsPostfix: PowerOn: {powerOn}");
-                Logger.LogInfo((object)$"TimeOfDayEventsPostfix: IsLocked: {isLocked}");
-                */
                 if (timeRatio < TimeBeforeLockout || (CanPowerOffLockout && !powerOn))
                 {
                     if (isLocked)
                     {
                         Logger.LogInfo((object)"TimeOfDayEventsPostfix: Unlock Alert");
-                        HUDManager.Instance.ReadDialogue(UnlockDialog);
+                        if (ShowUnlockMessage)
+                            HUDManager.Instance.ReadDialogue(UnlockDialog);
                         isLocked = false;
                     }
                 }
@@ -111,7 +144,8 @@ namespace Lockout
                     if (!isLocked)
                     {
                         Logger.LogInfo((object)"TimeOfDayEventsPostfix: Lockout Alert");
-                        HUDManager.Instance.ReadDialogue(LockoutDialog);
+                        if (ShowLockoutMessage)
+                            HUDManager.Instance.ReadDialogue(LockoutDialog);
                         isLocked = true;
                     }
                 }
@@ -120,7 +154,8 @@ namespace Lockout
                     if (isLocked)
                     {
                         Logger.LogInfo((object)"TimeOfDayEventsPostfix: Unlock Alert");
-                        HUDManager.Instance.ReadDialogue(UnlockDialog);
+                        if (ShowUnlockMessage)
+                            HUDManager.Instance.ReadDialogue(UnlockDialog);
                         isLocked = false;
                     }
                 }
@@ -289,6 +324,10 @@ namespace Lockout
             {
                 OnPowerSwitch(true);
                 isLocked = false;
+
+                if (ShowLockoutHoursMessage)
+                    HUDManager.Instance.ReadDialogue(StartDialog);
+
             }
 
             private static void OnPowerSwitch(bool on)

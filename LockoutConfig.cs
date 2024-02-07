@@ -27,6 +27,9 @@ namespace Lockout
 
         public string lockoutMessage = "The building is now locked down.";
         public string unlockMessage = "The building is now unlocked.";
+        public bool showLockoutHoursMessage = true;
+        public bool showLockoutMessage = true;
+        public bool showUnlockMessage = true;
 
         public LockoutConfig(ConfigFile cfg)
         {
@@ -51,6 +54,9 @@ namespace Lockout
 
             lockoutMessage = cfg.Bind("Messages", "Lockout Message", "The building is now locked down.", "The message displayed when the building is locked down.").Value;
             unlockMessage = cfg.Bind("Messages", "Unlock Message", "The building is now unlocked.", "The message displayed when the building is unlocked.").Value;
+            showLockoutHoursMessage = cfg.Bind("Messages", "Show Lockout Hours Message", true, "Show the lockout hours message").Value;
+            showLockoutMessage = cfg.Bind("Messages", "Show Lockout Message", true, "Show the lockout message").Value;
+            showUnlockMessage = cfg.Bind("Messages", "Show Unlock Message", true, "Show the unlock message").Value;
 
             if (timeBeforeLockout < 0 || timeBeforeLockout > 1)
             {
