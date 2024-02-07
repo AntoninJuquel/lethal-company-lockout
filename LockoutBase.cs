@@ -25,39 +25,39 @@ namespace Lockout
 
         private static bool isLocked = false;
         private static bool powerOn = true;
-        private static float TimeBeforeLockout { get => LockoutConfig.Instance.timeBeforeLockout; }
-        private static float TimeBeforeUnlock { get => LockoutConfig.Instance.timeBeforeUnlock; }
+        private static float TimeBeforeLockout => LockoutConfig.Instance.timeBeforeLockout;
+        private static float TimeBeforeUnlock => LockoutConfig.Instance.timeBeforeUnlock;
 
-        private static bool CanEnterFireExitDuringLockout { get => LockoutConfig.Instance.canEnterFireExitDuringLockout; }
-        private static bool CanEnterFireExitDuringUnlock { get => LockoutConfig.Instance.canEnterFireExitDuringUnlock; }
-        private static bool CanExitFireExitDuringLockout { get => LockoutConfig.Instance.canExitFireExitDuringLockout; }
-        private static bool CanExitFireExitDuringUnlock { get => LockoutConfig.Instance.canExitFireExitDuringUnlock; }
+        private static bool CanEnterFireExitDuringLockout => LockoutConfig.Instance.canEnterFireExitDuringLockout;
+        private static bool CanEnterFireExitDuringUnlock => LockoutConfig.Instance.canEnterFireExitDuringUnlock;
+        private static bool CanExitFireExitDuringLockout => LockoutConfig.Instance.canExitFireExitDuringLockout;
+        private static bool CanExitFireExitDuringUnlock => LockoutConfig.Instance.canExitFireExitDuringUnlock;
 
-        private static bool CanEnterMainEntranceDuringLockout { get => LockoutConfig.Instance.canEnterMainEntranceDuringLockout; }
-        private static bool CanEnterMainEntranceDuringUnlock { get => LockoutConfig.Instance.canEnterMainEntranceDuringUnlock; }
-        private static bool CanExitMainEntranceDuringLockout { get => LockoutConfig.Instance.canExitMainEntranceDuringLockout; }
-        private static bool CanExitMainEntranceDuringUnlock { get => LockoutConfig.Instance.canExitMainEntranceDuringUnlock; }
+        private static bool CanEnterMainEntranceDuringLockout => LockoutConfig.Instance.canEnterMainEntranceDuringLockout;
+        private static bool CanEnterMainEntranceDuringUnlock => LockoutConfig.Instance.canEnterMainEntranceDuringUnlock;
+        private static bool CanExitMainEntranceDuringLockout => LockoutConfig.Instance.canExitMainEntranceDuringLockout;
+        private static bool CanExitMainEntranceDuringUnlock => LockoutConfig.Instance.canExitMainEntranceDuringUnlock;
 
-        private static bool CanPowerOffLockout { get => LockoutConfig.Instance.canPowerOffLockout; }
+        private static bool CanPowerOffLockout => LockoutConfig.Instance.canPowerOffLockout;
 
-        private static KeyUsage CanUseKey { get => LockoutConfig.Instance.canUseKey; }
+        private static KeyUsage CanUseKey => LockoutConfig.Instance.canUseKey;
 
-        private static readonly DialogueSegment[] lockoutDialog =
+        private static DialogueSegment[] LockoutDialog =>
         [
             new()
             {
                 speakerText = "Facility AI",
-                bodyText = "The building is now locked down.",
+                bodyText = LockoutConfig.Instance.lockoutMessage,
                 waitTime = 3f,
             }
         ];
 
-        private static readonly DialogueSegment[] unlockDialog =
+        private static DialogueSegment[] UnlockDialog =>
         [
             new()
             {
                 speakerText = "Facility AI",
-                bodyText = "The building is now unlocked.",
+                bodyText = LockoutConfig.Instance.unlockMessage,
                 waitTime = 3f,
             }
         ];
@@ -102,7 +102,7 @@ namespace Lockout
                     if (isLocked)
                     {
                         Logger.LogInfo((object)"TimeOfDayEventsPostfix: Unlock Alert");
-                        HUDManager.Instance.ReadDialogue(unlockDialog);
+                        HUDManager.Instance.ReadDialogue(UnlockDialog);
                         isLocked = false;
                     }
                 }
@@ -111,7 +111,7 @@ namespace Lockout
                     if (!isLocked)
                     {
                         Logger.LogInfo((object)"TimeOfDayEventsPostfix: Lockout Alert");
-                        HUDManager.Instance.ReadDialogue(lockoutDialog);
+                        HUDManager.Instance.ReadDialogue(LockoutDialog);
                         isLocked = true;
                     }
                 }
@@ -120,7 +120,7 @@ namespace Lockout
                     if (isLocked)
                     {
                         Logger.LogInfo((object)"TimeOfDayEventsPostfix: Unlock Alert");
-                        HUDManager.Instance.ReadDialogue(unlockDialog);
+                        HUDManager.Instance.ReadDialogue(UnlockDialog);
                         isLocked = false;
                     }
                 }

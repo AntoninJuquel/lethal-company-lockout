@@ -25,6 +25,9 @@ namespace Lockout
 
         public LockoutBase.KeyUsage canUseKey = LockoutBase.KeyUsage.Inventory;
 
+        public string lockoutMessage = "The building is now locked down.";
+        public string unlockMessage = "The building is now unlocked.";
+
         public LockoutConfig(ConfigFile cfg)
         {
             InitInstance(this);
@@ -45,6 +48,9 @@ namespace Lockout
             canPowerOffLockout = cfg.Bind("Power", "Can Power Off Lockout", true, "Can power off the lockout").Value;
 
             canUseKey = (LockoutBase.KeyUsage)cfg.Bind("Key", "Can use key", 1, "Can use the key to enter/exit during lockout |0: No|1: Key in inventory slot|2: Key must be held|").Value;
+
+            lockoutMessage = cfg.Bind("Messages", "Lockout Message", "The building is now locked down.", "The message displayed when the building is locked down.").Value;
+            unlockMessage = cfg.Bind("Messages", "Unlock Message", "The building is now unlocked.", "The message displayed when the building is unlocked.").Value;
 
             if (timeBeforeLockout < 0 || timeBeforeLockout > 1)
             {
@@ -84,6 +90,8 @@ namespace Lockout
             LockoutBase.Logger.LogInfo($"Can Exit Main Entrance During Unlock: {canExitMainEntranceDuringUnlock}");
             LockoutBase.Logger.LogInfo($"Can Power Off Lockout: {canPowerOffLockout}");
             LockoutBase.Logger.LogInfo($"Can Use Key: {canUseKey}");
+            LockoutBase.Logger.LogInfo($"Lockout Message: {lockoutMessage}");
+            LockoutBase.Logger.LogInfo($"Unlock Message: {unlockMessage}");
         }
 
         public static void RequestSync()
